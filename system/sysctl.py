@@ -230,6 +230,13 @@ class SysctlModule(object):
         if get_platform().lower() == 'freebsd':
             # freebsd doesn't support -p, so reload the sysctl service
             rc,out,err = self.module.run_command('/etc/rc.d/sysctl reload')
+        elif get_platform().lower() == 'openbsd':
+            # openbsd doesn't support -p, or have a sysctl service, so parse /etc/sysctl.conf
+            for line in open(self.sysctl_file):
+                li=line.strip()
+                if not li.startswith("#"):
+                    setting = line.rstrip()
+                    rc,out,err = self.module.run_command(self.sysctl_cmd, setting)
         else:
             # system supports reloading via the -p flag to sysctl, so we'll use that
             sysctl_args = [self.sysctl_cmd, '-p', self.sysctl_file]
